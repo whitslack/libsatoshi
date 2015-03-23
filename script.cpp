@@ -91,6 +91,17 @@ intmax_t Script::Iterator::intval() const {
 }
 
 
+bool Script::valid() const {
+	auto end = script.end();
+	for (auto itr = this->begin(); itr != this->end(); ++itr) {
+		auto begin = itr.begin();
+		if (begin > end || itr.size() > static_cast<size_t>(end - begin)) {
+			return false;
+		}
+	}
+	return true;
+}
+
 void Script::push_int(intmax_t value) {
 	switch (value) {
 #define _(v) case v: this->push_opcode(OP_##v); break;
@@ -272,6 +283,9 @@ std::ostream & operator << (std::ostream &os, Script::Opcode opcode) {
 }
 
 std::ostream & operator << (std::ostream &os, const Script &script) {
+	if (!script.valid()) {
+		return os << "(invalid)";
+	}
 	auto orig_flags = os.flags(std::ios_base::dec | std::ios_base::right);
 	auto orig_fill = os.fill('0');
 	for (auto itr = script.begin(); itr != script.end(); ++itr) {

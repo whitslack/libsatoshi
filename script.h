@@ -161,6 +161,8 @@ public:
 	Iterator begin() const { return Iterator(script.begin()); }
 	Iterator end() const { return Iterator(script.end()); }
 
+	bool valid() const _pure;
+
 	void clear() { script.clear(); }
 	void reserve(size_t capacity) { script.reserve(capacity); }
 	void push_opcode(Opcode opcode) { script.push_back(opcode); }
