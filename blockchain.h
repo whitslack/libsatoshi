@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iosfwd>
 
 #include "script.h"
@@ -16,6 +18,7 @@ struct TxIn {
 
 Source & operator >> (Source &source, TxIn &txin);
 Sink & operator << (Sink &sink, const TxIn &txin);
+std::ostream & operator << (std::ostream &os, const TxIn &txin);
 
 
 struct TxOut {
@@ -25,6 +28,7 @@ struct TxOut {
 
 Source & operator >> (Source & source, TxOut &txout);
 Sink & operator << (Sink &sink, const TxOut &txout);
+std::ostream & operator << (std::ostream &os, const TxOut &txout);
 
 
 struct Tx {
@@ -36,6 +40,7 @@ struct Tx {
 
 Source & operator >> (Source &source, Tx &tx);
 Sink & operator << (Sink &sink, const Tx &tx);
+std::ostream & operator << (std::ostream &os, const Tx &tx);
 
 
 struct BlockHeader {
@@ -49,6 +54,7 @@ struct BlockHeader {
 
 Source & operator >> (Source &source, BlockHeader &hdr);
 Sink & operator << (Sink &sink, const BlockHeader &hdr);
+std::ostream & operator << (std::ostream &os, const BlockHeader &hdr);
 
 
 } // namespace satoshi
