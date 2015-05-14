@@ -274,6 +274,27 @@ Sink & operator << (Sink &sink, const AlertMessage &msg);
 std::ostream & operator << (std::ostream &os, const AlertMessage &msg);
 
 
+struct AlertPayload {
+	uint32_t version_le;
+	int64_t relay_until_le;
+	int64_t expiration_le;
+	uint32_t id_le;
+	uint32_t cancel_le;
+	std::vector<uint32_t> set_cancel_le;
+	uint32_t min_ver_le;
+	uint32_t max_ver_le;
+	std::vector<uint32_t> set_sub_ver_le;
+	uint32_t priority_le;
+	std::string comment;
+	std::string status_bar;
+	std::string reserved;
+};
+
+Source & operator >> (Source &source, AlertPayload &payload);
+Sink & operator << (Sink &sink, const AlertPayload &payload);
+std::ostream & operator << (std::ostream &os, const AlertPayload &msg);
+
+
 struct UnsupportedMessage : Message {
 	std::vector<uint8_t> data;
 };

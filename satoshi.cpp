@@ -306,6 +306,49 @@ std::ostream & operator << (std::ostream &os, const AlertMessage &msg) {
 }
 
 
+Source & operator >> (Source &source, AlertPayload &payload) {
+	source >> payload.version_le;
+	if (payload.version_le == htole(1)) {
+		source >> payload.relay_until_le >> payload.expiration_le >> payload.id_le >> payload.cancel_le >> payload.set_cancel_le >> payload.min_ver_le >> payload.max_ver_le >> payload.set_sub_ver_le >> payload.priority_le >> payload.comment >> payload.status_bar >> payload.reserved;
+	}
+	return source;
+}
+
+Sink & operator << (Sink &sink, const AlertPayload &payload) {
+	sink << payload.version_le;
+	if (payload.version_le == htole(1)) {
+		sink << payload.relay_until_le << payload.expiration_le << payload.id_le << payload.cancel_le << payload.set_cancel_le << payload.min_ver_le << payload.max_ver_le << payload.set_sub_ver_le << payload.priority_le << payload.comment << payload.status_bar << payload.reserved;
+	}
+	return sink;
+}
+
+std::ostream & operator << (std::ostream &os, const AlertPayload &payload) {
+	using ::operator <<;
+	auto version = letoh(payload.version_le);
+	os << "{ .version = " << version;
+	if (version == 1) {
+		auto relay_until = static_cast<std::time_t>(letoh(payload.relay_until_le));
+		auto expiration = static_cast<std::time_t>(letoh(payload.expiration_le));
+		os << ", .relay_until = " << relay_until << " (" << std::chrono::system_clock::from_time_t(relay_until) << "), .expiration = " << expiration << " (" << std::chrono::system_clock::from_time_t(expiration) << "), .id = " << letoh(payload.id_le) << ", .cancel = " << letoh(payload.cancel_le) << ", .set_cancel = [";
+		for (size_t i = 0; i < payload.set_cancel_le.size(); ++i) {
+			if (i > 0) {
+				os << ", ";
+			}
+			os << letoh(payload.set_cancel_le[i]);
+		}
+		os << "], .min_ver = " << letoh(payload.min_ver_le) << ", .max_ver = " << letoh(payload.max_ver_le) << ", .set_sub_ver = [";
+		for (size_t i = 0; i < payload.set_sub_ver_le.size(); ++i) {
+			if (i > 0) {
+				os << ", ";
+			}
+			os << letoh(payload.set_sub_ver_le[i]);
+		}
+		os << "], .priority = " << letoh(payload.priority_le) << ", .comment = \"" << payload.comment << "\", .status_bar = \"" << payload.status_bar << "\", .reserved = \"" << payload.reserved << '"';
+	}
+	return os << " }";
+}
+
+
 Source & operator >> (LimitedSource &source, UnsupportedMessage &msg) {
 	msg.data.resize(source.remaining);
 	source.read_fully(msg.data.data(), msg.data.size());
