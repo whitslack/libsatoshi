@@ -170,6 +170,13 @@ public:
 	void push_data(const void *data, size_t size);
 	void push_copy(Iterator itr) { script.insert(script.end(), itr.itr, itr.end()); }
 
+	bool operator == (const Script &rhs) const { return script == rhs.script; }
+	bool operator != (const Script &rhs) const { return script != rhs.script; }
+	bool operator < (const Script &rhs) const { return script < rhs.script; }
+	bool operator <= (const Script &rhs) const { return script <= rhs.script; }
+	bool operator > (const Script &rhs) const { return script > rhs.script; }
+	bool operator >= (const Script &rhs) const { return script >= rhs.script; }
+
 };
 
 Source & operator >> (Source &source, Script &script);
