@@ -9,9 +9,17 @@
 namespace satoshi {
 
 
+struct OutPoint {
+	digest256_t tx_hash;
+	uint32_t txout_idx_le;
+};
+
+bool operator < (const OutPoint &lhs, const OutPoint &rhs) _pure;
+std::ostream & operator << (std::ostream &os, const OutPoint &outpoint);
+
+
 struct TxIn {
-	digest256_t prevout_tx_hash;
-	uint32_t prevout_txout_idx_le;
+	OutPoint prevout;
 	Script script;
 	uint32_t seq_num_le;
 };

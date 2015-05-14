@@ -8,16 +8,25 @@
 namespace satoshi {
 
 
+bool operator < (const OutPoint &lhs, const OutPoint &rhs) {
+	return lhs.tx_hash < rhs.tx_hash || lhs.tx_hash == rhs.tx_hash && letoh(lhs.txout_idx_le) < letoh(rhs.txout_idx_le);
+}
+
+std::ostream & operator << (std::ostream &os, const OutPoint &outpoint) {
+	return print_digest_le(os << "{ .tx_hash = ", outpoint.tx_hash) << ", .txout_idx = " << letoh(outpoint.txout_idx_le) << " }";
+}
+
+
 Source & operator >> (Source &source, TxIn &txin) {
-	return source >> txin.prevout_tx_hash >> txin.prevout_txout_idx_le >> txin.script >> txin.seq_num_le;
+	return source >> txin.prevout >> txin.script >> txin.seq_num_le;
 }
 
 Sink & operator << (Sink &sink, const TxIn &txin) {
-	return sink << txin.prevout_tx_hash << txin.prevout_txout_idx_le << txin.script << txin.seq_num_le;
+	return sink << txin.prevout << txin.script << txin.seq_num_le;
 }
 
 std::ostream & operator << (std::ostream &os, const TxIn &txin) {
-	return print_digest_le(os << "{ .prevout_tx_hash = ", txin.prevout_tx_hash) << ", .prevout_txout_idx = " << letoh(txin.prevout_txout_idx_le) << ", .script = [ " << txin.script << " ], .seq_num = " << letoh(txin.seq_num_le) << " }";
+	return os << "{ .prevout = " << txin.prevout << ", .script = [ " << txin.script << " ], .seq_num = " << letoh(txin.seq_num_le) << " }";
 }
 
 
