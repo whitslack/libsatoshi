@@ -1,4 +1,5 @@
 #include <array>
+#include <chrono>
 #include <ostream>
 #include <vector>
 
@@ -23,3 +24,5 @@ static std::ostream & operator << (std::ostream &os, const std::vector<T> &vecto
 double compact_to_double(uint32_t compact) _const;
 
 std::ostream & print_digest_le(std::ostream &os, const digest256_t &digest);
+
+std::ostream & operator << (std::ostream &os, std::chrono::system_clock::time_point time);

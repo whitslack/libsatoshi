@@ -1,5 +1,7 @@
 #include "blockchain.h"
 
+#include <ctime>
+
 #include "common/serial.h"
 
 
@@ -55,7 +57,9 @@ Sink & operator << (Sink &sink, const BlockHeader &hdr) {
 }
 
 std::ostream & operator << (std::ostream &os, const BlockHeader &hdr) {
-	return print_digest_le(print_digest_le(os << "{ .version = " << letoh(hdr.version_le) << ", .parent_block_hash = ", hdr.parent_block_hash) << ", .merkle_root_hash = ", hdr.merkle_root_hash) << ", .time = " << letoh(hdr.time_le) << ", .bits = " << compact_to_double(letoh(hdr.bits_le)) << ", .nonce = " << hdr.nonce << " }";
+	using ::operator <<;
+	auto time = static_cast<std::time_t>(letoh(hdr.time_le));
+	return print_digest_le(print_digest_le(os << "{ .version = " << letoh(hdr.version_le) << ", .parent_block_hash = ", hdr.parent_block_hash) << ", .merkle_root_hash = ", hdr.merkle_root_hash) << ", .time = " << time << " (" << std::chrono::system_clock::from_time_t(time) << "), .bits = " << compact_to_double(letoh(hdr.bits_le)) << ", .nonce = " << hdr.nonce << " }";
 }
 
 

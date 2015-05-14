@@ -1,5 +1,6 @@
 #include "types.h"
 
+#include <ctime>
 #include <iomanip>
 
 #include "common/narrow.h"
@@ -29,6 +30,16 @@ std::ostream & print_digest_le(std::ostream &os, const digest256_t &digest) {
 	os.fill(orig_fill);
 	os.flags(orig_flags);
 	return os;
+}
+
+std::ostream & operator << (std::ostream &os, std::chrono::system_clock::time_point time) {
+	auto t = std::chrono::system_clock::to_time_t(time);
+	std::tm tm;
+	::localtime_r(&t, &tm);
+	// [C++11] os << std::put_time(&tm, "%c");
+	char buf[25];
+	std::strftime(buf, sizeof buf, "%c", &tm);
+	return os << buf;
 }
 
 Source & read_varint(Source &source, uint32_t &v) {

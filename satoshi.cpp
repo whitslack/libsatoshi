@@ -76,8 +76,10 @@ Sink & operator << (Sink &sink, const VersionMessage &msg) {
 }
 
 std::ostream & operator << (std::ostream &os, const VersionMessage &msg) {
+	using ::operator <<;
 	auto version = letoh(msg.version_le);
-	os << "{ .version = " << version << ", .services = " << std::hex << std::showbase << static_cast<uint64_t>(letoh(msg.services_le)) << std::dec << ", .timestamp = " << letoh(msg.timestamp_le) << ", .addr_recv = " << msg.addr_recv;
+	auto timestamp = static_cast<std::time_t>(letoh(msg.timestamp_le));
+	os << "{ .version = " << version << ", .services = " << std::hex << std::showbase << static_cast<uint64_t>(letoh(msg.services_le)) << std::dec << ", .timestamp = " << timestamp << " (" << std::chrono::system_clock::from_time_t(timestamp) << "), .addr_recv = " << msg.addr_recv;
 	if (version >= 106) {
 		os << ", .addr_from = " << msg.addr_from;
 		if (version >= 209) {
