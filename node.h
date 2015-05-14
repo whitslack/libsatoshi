@@ -20,7 +20,7 @@ public:
 public:
 	void init_version_message(VersionMessage &msg) const;
 
-	void run();
+	void run() _noreturn;
 
 protected:
 	template <typename M>
