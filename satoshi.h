@@ -22,17 +22,18 @@ struct MessageHeader {
 	enum class Magic : uint32_t {
 		MAIN = 0xD9B4BEF9,
 		TESTNET3 = 0x0709110B,
-	} magic_le;
+	};
+	le<Magic> magic;
 	char command[12];
-	uint32_t length_le;
+	le<uint32_t> length;
 	uint32_t checksum;
 };
 
 
 struct NetworkAddress {
-	Services services_le;
+	le<Services> services;
 	in6_addr addr;
-	uint16_t port_be;
+	be<uint16_t> port;
 };
 
 Source & operator >> (Source &source, NetworkAddress &addr);
@@ -46,7 +47,8 @@ struct InventoryVector {
 		MSG_TX = 1,
 		MSG_BLOCK = 2,
 		MSG_FILTERED_BLOCK = 3,
-	} type_le;
+	};
+	le<Type> type;
 	digest256_t hash;
 };
 
@@ -63,14 +65,14 @@ std::ostream & operator << (std::ostream &os, const Message &msg);
 struct VersionMessage : Message {
 	static constexpr char command[12] = "version";
 
-	uint32_t version_le;
-	Services services_le;
-	int64_t timestamp_le;
+	le<uint32_t> version;
+	le<Services> services;
+	le<int64_t> timestamp;
 	NetworkAddress addr_recv;
 	NetworkAddress addr_from;
 	uint64_t nonce;
 	std::string user_agent;
-	int32_t start_height_le;
+	le<int32_t> start_height;
 	bool relay;
 };
 
@@ -88,7 +90,7 @@ struct AddrMessage : Message {
 	static constexpr char command[12] = "addr";
 
 	struct AddressWithTimestamp {
-		uint32_t timestamp_le;
+		le<uint32_t> timestamp;
 		NetworkAddress address;
 	};
 	std::vector<AddressWithTimestamp> addr_list;
@@ -123,7 +125,7 @@ struct NotFoundMessage : InvMessage {
 struct GetBlocksMessage : Message {
 	static constexpr char command[12] = "getblocks";
 
-	uint32_t version_le;
+	le<uint32_t> version;
 	std::vector<digest256_t> block_locator_hashes;
 	digest256_t hash_stop;
 };
@@ -252,7 +254,7 @@ struct FilterClearMessage : Message {
 struct MerkleBlockMessage : Message, BlockHeader {
 	static constexpr char command[12] = "merkleblock";
 
-	uint32_t total_transactions_le;
+	le<uint32_t> total_transactions;
 	std::vector<digest256_t> hashes;
 	std::vector<uint8_t> flags;
 };
@@ -275,16 +277,16 @@ std::ostream & operator << (std::ostream &os, const AlertMessage &msg);
 
 
 struct AlertPayload {
-	uint32_t version_le;
-	int64_t relay_until_le;
-	int64_t expiration_le;
-	uint32_t id_le;
-	uint32_t cancel_le;
-	std::vector<uint32_t> set_cancel_le;
-	uint32_t min_ver_le;
-	uint32_t max_ver_le;
-	std::vector<uint32_t> set_sub_ver_le;
-	uint32_t priority_le;
+	le<uint32_t> version;
+	le<int64_t> relay_until;
+	le<int64_t> expiration;
+	le<uint32_t> id;
+	le<uint32_t> cancel;
+	std::vector<le<uint32_t>> set_cancel;
+	le<uint32_t> min_ver;
+	le<uint32_t> max_ver;
+	std::vector<le<uint32_t>> set_sub_ver;
+	le<uint32_t> priority;
 	std::string comment;
 	std::string status_bar;
 	std::string reserved;

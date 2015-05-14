@@ -1,5 +1,6 @@
 #include "bloom.h"
 
+#include "common/endian.h"
 #include "common/murmur3.h"
 #include "common/serial.h"
 
@@ -38,11 +39,14 @@ bool BloomFilter::maybe_contains(const void *data, size_t data_size) const {
 }
 
 Sink & operator << (Sink &sink, const BloomFilter &filter) {
-	return sink << filter.bits << le(filter._hash_count) << le(filter._tweak);
+	return sink << filter.bits << htole(filter._hash_count) << htole(filter._tweak);
 }
 
 Source & operator >> (Source &source, BloomFilter &filter) {
-	return source >> filter.bits >> le(filter._hash_count) >> le(filter._tweak);
+	source >> filter.bits >> filter._hash_count >> filter._tweak;
+	filter._hash_count = as_le(filter._hash_count);
+	filter._tweak = as_le(filter._tweak);
+	return source;
 }
 
 

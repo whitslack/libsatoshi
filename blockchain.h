@@ -4,6 +4,7 @@
 
 #include "script.h"
 #include "types.h"
+#include "common/endian.h"
 
 
 namespace satoshi {
@@ -11,7 +12,7 @@ namespace satoshi {
 
 struct OutPoint {
 	digest256_t tx_hash;
-	uint32_t txout_idx_le;
+	le<uint32_t> txout_idx;
 };
 
 bool operator < (const OutPoint &lhs, const OutPoint &rhs) _pure;
@@ -21,7 +22,7 @@ std::ostream & operator << (std::ostream &os, const OutPoint &outpoint);
 struct TxIn {
 	OutPoint prevout;
 	Script script;
-	uint32_t seq_num_le;
+	le<uint32_t> seq_num;
 };
 
 Source & operator >> (Source &source, TxIn &txin);
@@ -30,7 +31,7 @@ std::ostream & operator << (std::ostream &os, const TxIn &txin);
 
 
 struct TxOut {
-	uint64_t amount_le;
+	le<uint64_t> amount;
 	Script script;
 };
 
@@ -40,10 +41,10 @@ std::ostream & operator << (std::ostream &os, const TxOut &txout);
 
 
 struct Tx {
-	uint32_t version_le;
+	le<uint32_t> version;
 	std::vector<TxIn> inputs;
 	std::vector<TxOut> outputs;
-	int32_t lock_time_le;
+	le<int32_t> lock_time;
 };
 
 Source & operator >> (Source &source, Tx &tx);
@@ -52,11 +53,11 @@ std::ostream & operator << (std::ostream &os, const Tx &tx);
 
 
 struct BlockHeader {
-	uint32_t version_le;
+	le<uint32_t> version;
 	digest256_t parent_block_hash;
 	digest256_t merkle_root_hash;
-	uint32_t time_le;
-	uint32_t bits_le;
+	le<uint32_t> time;
+	le<uint32_t> bits;
 	uint32_t nonce;
 };
 

@@ -11,11 +11,11 @@ public:
 	static constexpr uint32_t protocol_version = 70001;
 
 private:
-	MessageHeader::Magic magic_le;
+	MessageHeader::Magic magic;
 	Socket socket;
 
 public:
-	Node(MessageHeader::Magic magic, Socket &&socket) : magic_le(htole(magic)), socket(std::move(socket)) { }
+	Node(MessageHeader::Magic magic, Socket &&socket) : magic(magic), socket(std::move(socket)) { }
 
 public:
 	void init_version_message(VersionMessage &msg) const;

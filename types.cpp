@@ -3,6 +3,7 @@
 #include <ctime>
 #include <iomanip>
 
+#include "common/endian.h"
 #include "common/narrow.h"
 #include "common/serial.h"
 
@@ -54,17 +55,19 @@ Source & read_varint(Source &source, uint64_t &v) {
 		v = byte;
 	}
 	else if (byte == 0xFD) {
-		uint16_t value;
-		source >> le(value);
+		le<uint16_t> value;
+		source >> value;
 		v = value;
 	}
 	else if (byte == 0xFE) {
-		uint32_t value;
-		source >> le(value);
+		le<uint32_t> value;
+		source >> value;
 		v = value;
 	}
 	else { // (byte == 0xFF)
-		source >> le(v);
+		le<uint64_t> value;
+		source >> value;
+		v = value;
 	}
 	return source;
 }
@@ -74,10 +77,10 @@ Sink & write_varint(Sink &sink, uint32_t v) {
 		sink << static_cast<uint8_t>(v);
 	}
 	else if (v <= UINT16_MAX) {
-		sink << static_cast<uint8_t>(0xFD) << le(static_cast<uint16_t>(v));
+		sink << static_cast<uint8_t>(0xFD) << htole(static_cast<uint16_t>(v));
 	}
 	else {
-		sink << static_cast<uint8_t>(0xFE) << le(v);
+		sink << static_cast<uint8_t>(0xFE) << htole(v);
 	}
 	return sink;
 }
@@ -86,5 +89,5 @@ Sink & write_varint(Sink &sink, uint64_t v) {
 	if (v <= UINT32_MAX) {
 		return write_varint(sink, static_cast<uint32_t>(v));
 	}
-	return sink << static_cast<uint8_t>(0xFF) << le(v);
+	return sink << static_cast<uint8_t>(0xFF) << htole(v);
 }

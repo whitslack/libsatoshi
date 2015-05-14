@@ -10,11 +10,11 @@ namespace satoshi {
 
 
 Source & operator >> (Source &source, NetworkAddress &addr) {
-	return source >> addr.services_le >> addr.addr >> addr.port_be;
+	return source >> addr.services >> addr.addr >> addr.port;
 }
 
 Sink & operator << (Sink &sink, const NetworkAddress &addr) {
-	return sink << addr.services_le << addr.addr << addr.port_be;
+	return sink << addr.services << addr.addr << addr.port;
 }
 
 std::ostream & operator << (std::ostream &os, const NetworkAddress &addr) {
@@ -22,13 +22,13 @@ std::ostream & operator << (std::ostream &os, const NetworkAddress &addr) {
 		sockaddr_in sai;
 		sai.sin_family = AF_INET;
 		sai.sin_addr.s_addr = addr.addr.s6_addr32[3];
-		sai.sin_port = addr.port_be;
+		as_be(sai.sin_port) = addr.port;
 		os << sai;
 	}
 	else {
 		sockaddr_in6 sai6;
 		sai6.sin6_family = AF_INET6;
-		sai6.sin6_port = addr.port_be;
+		as_be(sai6.sin6_port) = addr.port;
 		sai6.sin6_flowinfo = 0;
 		sai6.sin6_addr = addr.addr;
 		sai6.sin6_scope_id = 0;
@@ -46,12 +46,12 @@ std::ostream & operator << (std::ostream &os, const Message &) {
 constexpr char VersionMessage::command[12];
 
 Source & operator >> (Source &source, VersionMessage &msg) {
-	source >> msg.version_le >> msg.services_le >> msg.timestamp_le >> msg.addr_recv;
-	auto version = letoh(msg.version_le);
+	source >> msg.version >> msg.services >> msg.timestamp >> msg.addr_recv;
+	auto version = letoh(msg.version);
 	if (version >= 106) {
 		source >> msg.addr_from >> msg.nonce >> msg.user_agent;
 		if (version >= 209) {
-			source >> msg.start_height_le;
+			source >> msg.start_height;
 			if (version >= 70001) {
 				source >> msg.relay;
 			}
@@ -61,12 +61,12 @@ Source & operator >> (Source &source, VersionMessage &msg) {
 }
 
 Sink & operator << (Sink &sink, const VersionMessage &msg) {
-	sink << msg.version_le << msg.services_le << msg.timestamp_le << msg.addr_recv;
-	auto version = letoh(msg.version_le);
+	sink << msg.version << msg.services << msg.timestamp << msg.addr_recv;
+	auto version = letoh(msg.version);
 	if (version >= 106) {
 		sink << msg.addr_from << msg.nonce << msg.user_agent;
 		if (version >= 209) {
-			sink << msg.start_height_le;
+			sink << msg.start_height;
 			if (version >= 70001) {
 				sink << msg.relay;
 			}
@@ -77,13 +77,13 @@ Sink & operator << (Sink &sink, const VersionMessage &msg) {
 
 std::ostream & operator << (std::ostream &os, const VersionMessage &msg) {
 	using ::operator <<;
-	auto version = letoh(msg.version_le);
-	auto timestamp = static_cast<std::time_t>(letoh(msg.timestamp_le));
-	os << "{ .version = " << version << ", .services = " << std::hex << std::showbase << static_cast<uint64_t>(letoh(msg.services_le)) << std::dec << ", .timestamp = " << timestamp << " (" << std::chrono::system_clock::from_time_t(timestamp) << "), .addr_recv = " << msg.addr_recv;
+	auto version = letoh(msg.version);
+	auto timestamp = static_cast<std::time_t>(letoh(msg.timestamp));
+	os << "{ .version = " << version << ", .services = " << letoh(msg.services) << ", .timestamp = " << timestamp << " (" << std::chrono::system_clock::from_time_t(timestamp) << "), .addr_recv = " << msg.addr_recv;
 	if (version >= 106) {
 		os << ", .addr_from = " << msg.addr_from;
 		if (version >= 209) {
-			os << ", .start_height = " << letoh(msg.start_height_le);
+			os << ", .start_height = " << msg.start_height;
 			if (version >= 70001) {
 				os << ", .relay = " << std::boolalpha << msg.relay;
 			}
@@ -103,7 +103,7 @@ Source & operator >> (Source &source, AddrMessage &msg) {
 	source >> varint(count);
 	msg.addr_list.resize(count);
 	for (auto &addr : msg.addr_list) {
-		source >> addr.timestamp_le >> addr.address;
+		source >> addr.timestamp >> addr.address;
 	}
 	return source;
 }
@@ -111,7 +111,7 @@ Source & operator >> (Source &source, AddrMessage &msg) {
 Sink & operator << (Sink &sink, const AddrMessage &msg) {
 	sink << varint(msg.addr_list.size());
 	for (auto &addr : msg.addr_list) {
-		sink << addr.timestamp_le << addr.address;
+		sink << addr.timestamp << addr.address;
 	}
 	return sink;
 }
@@ -145,15 +145,15 @@ constexpr char NotFoundMessage::command[12];
 constexpr char GetBlocksMessage::command[12];
 
 Source & operator >> (Source &source, GetBlocksMessage &msg) {
-	return source >> msg.version_le >> msg.block_locator_hashes >> msg.hash_stop;
+	return source >> msg.version >> msg.block_locator_hashes >> msg.hash_stop;
 }
 
 Sink & operator << (Sink &sink, const GetBlocksMessage &msg) {
-	return sink << msg.version_le << msg.block_locator_hashes << msg.hash_stop;
+	return sink << msg.version << msg.block_locator_hashes << msg.hash_stop;
 }
 
 std::ostream & operator << (std::ostream &os, const GetBlocksMessage &msg) {
-	return print_digest_le(os << "{ .version = " << letoh(msg.version_le) << ", .block_locator_hashes = (" << msg.block_locator_hashes.size() << ' ' << (msg.block_locator_hashes.size() == 1 ? "hash" : "hashes") << "), .hash_stop = ", msg.hash_stop) << " }";
+	return print_digest_le(os << "{ .version = " << msg.version << ", .block_locator_hashes = (" << msg.block_locator_hashes.size() << ' ' << (msg.block_locator_hashes.size() == 1 ? "hash" : "hashes") << "), .hash_stop = ", msg.hash_stop) << " }";
 }
 
 
@@ -254,7 +254,8 @@ Sink & operator << (Sink &sink, const FilterLoadMessage &msg) {
 }
 
 std::ostream & operator << (std::ostream &os, const FilterLoadMessage &msg) {
-	return os << "{ .filter = (" << msg.filter.size() << ' ' << (msg.filter.size() == 1 ? "byte" : "bytes") << "), .nHashFuncs = " << letoh(msg.filter.hash_count()) << ", .nTweak = " << letoh(msg.filter.tweak()) << ", .nFlags = " << static_cast<uint>(msg.nFlags) << " }";
+	using ::operator <<;
+	return os << "{ .filter = (" << msg.filter.size() << ' ' << (msg.filter.size() == 1 ? "byte" : "bytes") << "), .nHashFuncs = " << msg.filter.hash_count() << ", .nTweak = " << msg.filter.tweak() << ", .nFlags = " << msg.nFlags << " }";
 }
 
 
@@ -279,15 +280,15 @@ constexpr char FilterClearMessage::command[12];
 constexpr char MerkleBlockMessage::command[12];
 
 Source & operator >> (Source &source, MerkleBlockMessage &msg) {
-	return source >> static_cast<BlockHeader &>(msg) >> msg.total_transactions_le >> msg.hashes >> msg.flags;
+	return source >> static_cast<BlockHeader &>(msg) >> msg.total_transactions >> msg.hashes >> msg.flags;
 }
 
 Sink & operator << (Sink &sink, const MerkleBlockMessage &msg) {
-	return sink << static_cast<const BlockHeader &>(msg) << msg.total_transactions_le << msg.hashes << msg.flags;
+	return sink << static_cast<const BlockHeader &>(msg) << msg.total_transactions << msg.hashes << msg.flags;
 }
 
 std::ostream & operator << (std::ostream &os, const MerkleBlockMessage &msg) {
-	return os << static_cast<const BlockHeader &>(msg) << "{ .total_transactions = " << letoh(msg.total_transactions_le) << ", .hashes = (" << msg.hashes.size() << ' ' << (msg.hashes.size() == 1 ? "hash" : "hashes") << "), .flags = (" << msg.flags.size() << ' ' << (msg.flags.size() == 1 ? "byte" : "bytes") << ") }";
+	return os << static_cast<const BlockHeader &>(msg) << "{ .total_transactions = " << msg.total_transactions << ", .hashes = (" << msg.hashes.size() << ' ' << (msg.hashes.size() == 1 ? "hash" : "hashes") << "), .flags = (" << msg.flags.size() << ' ' << (msg.flags.size() == 1 ? "byte" : "bytes") << ") }";
 }
 
 
@@ -307,43 +308,29 @@ std::ostream & operator << (std::ostream &os, const AlertMessage &msg) {
 
 
 Source & operator >> (Source &source, AlertPayload &payload) {
-	source >> payload.version_le;
-	if (payload.version_le == htole(1)) {
-		source >> payload.relay_until_le >> payload.expiration_le >> payload.id_le >> payload.cancel_le >> payload.set_cancel_le >> payload.min_ver_le >> payload.max_ver_le >> payload.set_sub_ver_le >> payload.priority_le >> payload.comment >> payload.status_bar >> payload.reserved;
+	source >> payload.version;
+	if (payload.version == 1) {
+		source >> payload.relay_until >> payload.expiration >> payload.id >> payload.cancel >> payload.set_cancel >> payload.min_ver >> payload.max_ver >> payload.set_sub_ver >> payload.priority >> payload.comment >> payload.status_bar >> payload.reserved;
 	}
 	return source;
 }
 
 Sink & operator << (Sink &sink, const AlertPayload &payload) {
-	sink << payload.version_le;
-	if (payload.version_le == htole(1)) {
-		sink << payload.relay_until_le << payload.expiration_le << payload.id_le << payload.cancel_le << payload.set_cancel_le << payload.min_ver_le << payload.max_ver_le << payload.set_sub_ver_le << payload.priority_le << payload.comment << payload.status_bar << payload.reserved;
+	sink << payload.version;
+	if (payload.version == 1) {
+		sink << payload.relay_until << payload.expiration << payload.id << payload.cancel << payload.set_cancel << payload.min_ver << payload.max_ver << payload.set_sub_ver << payload.priority << payload.comment << payload.status_bar << payload.reserved;
 	}
 	return sink;
 }
 
 std::ostream & operator << (std::ostream &os, const AlertPayload &payload) {
 	using ::operator <<;
-	auto version = letoh(payload.version_le);
+	auto version = letoh(payload.version);
 	os << "{ .version = " << version;
 	if (version == 1) {
-		auto relay_until = static_cast<std::time_t>(letoh(payload.relay_until_le));
-		auto expiration = static_cast<std::time_t>(letoh(payload.expiration_le));
-		os << ", .relay_until = " << relay_until << " (" << std::chrono::system_clock::from_time_t(relay_until) << "), .expiration = " << expiration << " (" << std::chrono::system_clock::from_time_t(expiration) << "), .id = " << letoh(payload.id_le) << ", .cancel = " << letoh(payload.cancel_le) << ", .set_cancel = [";
-		for (size_t i = 0; i < payload.set_cancel_le.size(); ++i) {
-			if (i > 0) {
-				os << ", ";
-			}
-			os << letoh(payload.set_cancel_le[i]);
-		}
-		os << "], .min_ver = " << letoh(payload.min_ver_le) << ", .max_ver = " << letoh(payload.max_ver_le) << ", .set_sub_ver = [";
-		for (size_t i = 0; i < payload.set_sub_ver_le.size(); ++i) {
-			if (i > 0) {
-				os << ", ";
-			}
-			os << letoh(payload.set_sub_ver_le[i]);
-		}
-		os << "], .priority = " << letoh(payload.priority_le) << ", .comment = \"" << payload.comment << "\", .status_bar = \"" << payload.status_bar << "\", .reserved = \"" << payload.reserved << '"';
+		auto relay_until = static_cast<std::time_t>(letoh(payload.relay_until));
+		auto expiration = static_cast<std::time_t>(letoh(payload.expiration));
+		os << ", .relay_until = " << relay_until << " (" << std::chrono::system_clock::from_time_t(relay_until) << "), .expiration = " << expiration << " (" << std::chrono::system_clock::from_time_t(expiration) << "), .id = " << payload.id << ", .cancel = " << payload.cancel << ", .set_cancel = " << payload.set_cancel << ", .min_ver = " << payload.min_ver << ", .max_ver = " << payload.max_ver << ", .set_sub_ver = " << payload.set_sub_ver << ", .priority = " << payload.priority << ", .comment = \"" << payload.comment << "\", .status_bar = \"" << payload.status_bar << "\", .reserved = \"" << payload.reserved << '"';
 	}
 	return os << " }";
 }

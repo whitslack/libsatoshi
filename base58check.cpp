@@ -1,5 +1,6 @@
 #include "base58check.h"
 
+#include "common/endian.h"
 #include "common/mpn.h"
 #include "common/sha.h"
 
@@ -125,7 +126,7 @@ size_t base58check_decode(void * _restrict out, size_t n_out, const char * _rest
 	}
 	for (auto left = mpn, right = mpn + sizeof mpn / sizeof *mpn; left <= --right; ++left) {
 		auto temp = *left;
-		*left = htobe(*right), *right = htobe(temp);
+		as_be(*left) = *right, as_be(*right) = temp;
 	}
 	auto p1 = reinterpret_cast<uint8_t *>(mpn), end1 = p1 + sizeof mpn - 4;
 	while (p1 < end1 && *p1 == 0) {

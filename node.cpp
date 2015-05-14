@@ -20,29 +20,29 @@ static void sockaddr_to_NetworkAddress(NetworkAddress &na, const sockaddr &sa) {
 		case AF_INET: {
 			auto &sai = reinterpret_cast<const sockaddr_in &>(sa);
 			std::memset(na.addr.s6_addr, 0, 8);
-			na.addr.s6_addr32[2] = htobe(0xFFFF);
+			as_be(na.addr.s6_addr32[2]) = 0xFFFF;
 			std::memcpy(na.addr.s6_addr + 12, &sai.sin_addr, 4);
-			na.port_be = sai.sin_port;
+			na.port = as_be(sai.sin_port);
 			break;
 		}
 		case AF_INET6: {
 			auto &sai6 = reinterpret_cast<const sockaddr_in6 &>(sa);
 			std::memcpy(&na.addr, &sai6.sin6_addr, sizeof na.addr);
-			na.port_be = sai6.sin6_port;
+			na.port = as_be(sai6.sin6_port);
 			break;
 		}
 		default:
 			std::memset(&na.addr, 0, sizeof na.addr);
-			na.port_be = 0;
+			na.port = 0;
 			break;
 	}
 }
 
 
 void Node::init_version_message(VersionMessage &msg) const {
-	msg.version_le = htole(protocol_version);
-	msg.services_le = { };
-	msg.timestamp_le = htole(std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count());
+	msg.version = protocol_version;
+	msg.services = { };
+	msg.timestamp = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 	union {
 		sockaddr sa;
 		sockaddr_in sai;
@@ -51,13 +51,13 @@ void Node::init_version_message(VersionMessage &msg) const {
 	socklen_t addr_len = static_cast<socklen_t>(sizeof addr);
 	this->socket.getpeername(&addr.sa, &addr_len);
 	sockaddr_to_NetworkAddress(msg.addr_recv, addr.sa);
-	msg.addr_recv.services_le = htole(Services::NODE_NETWORK);
+	msg.addr_recv.services = Services::NODE_NETWORK;
 	addr_len = static_cast<socklen_t>(sizeof addr);
 	msg.addr_from.addr = in6addr_any;
-	msg.addr_from.port_be = 0;
-	msg.addr_from.services_le = msg.services_le;
+	msg.addr_from.port = 0;
+	msg.addr_from.services = msg.services;
 	msg.nonce = std::chrono::steady_clock::now().time_since_epoch().count();
-	msg.start_height_le = htole(-1);
+	msg.start_height = -1;
 	msg.relay = true;
 }
 
@@ -66,7 +66,7 @@ void Node::run() {
 	for (;;) {
 		MessageHeader hdr;
 		source >> hdr;
-		if (hdr.magic_le != magic_le) {
+		if (hdr.magic != magic) {
 			throw std::ios_base::failure("received message has incorrect magic value");
 		}
 		switch (hdr.command[0]) {
@@ -247,10 +247,10 @@ void Node::send(const M &msg) {
 	SHA256 osha;
 	osha << isha.digest();
 	MessageHeader hdr;
-	hdr.magic_le = magic_le;
+	hdr.magic = magic;
 	std::memcpy(hdr.command, M::command, sizeof hdr.command);
 	auto length = narrow_check<uint32_t>(isha.length - 1);
-	hdr.length_le = htole(length);
+	hdr.length = length;
 	hdr.checksum = *reinterpret_cast<const uint32_t *>(osha.digest().data());
 	if (elog.trace_enabled()) {
 		elog.trace() << "sending " << std::string(hdr.command, sizeof hdr.command).c_str() << " (" << sizeof hdr + length << " bytes) " << msg << std::endl;
@@ -288,7 +288,7 @@ template <typename M>
 M Node::receive(Source &source, const MessageHeader &hdr) {
 	SHA256 isha;
 	Tap tap(source, isha);
-	auto length = letoh(hdr.length_le);
+	auto length = letoh(hdr.length);
 	LimitedSource ls(tap, length);
 	M msg;
 	ls >> msg;
