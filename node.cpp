@@ -7,6 +7,7 @@
 #include "common/narrow.h"
 #include "common/serial.h"
 #include "common/sha.h"
+#include "common/signal.h"
 
 extern Log elog;
 
@@ -255,6 +256,9 @@ void Node::send(const M &msg) {
 		elog.trace() << "sending " << std::string(hdr.command, sizeof hdr.command).c_str() << " (" << sizeof hdr + length << " bytes) " << msg << std::endl;
 	}
 	BufferedSink<3072> sink(socket);
+	posix::SignalSet sigmask;
+	sigmask.fill();
+	posix::SignalBlock block(sigmask);
 	(sink << hdr << msg).flush_fully();
 }
 
