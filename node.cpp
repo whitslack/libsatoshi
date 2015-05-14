@@ -248,10 +248,11 @@ void Node::send(const M &msg) {
 	MessageHeader hdr;
 	hdr.magic_le = magic_le;
 	std::memcpy(hdr.command, M::command, sizeof hdr.command);
-	hdr.length_le = htole(narrow_check<uint32_t>(isha.length - 1));
+	auto length = narrow_check<uint32_t>(isha.length - 1);
+	hdr.length_le = htole(length);
 	hdr.checksum = *reinterpret_cast<const uint32_t *>(osha.digest().data());
 	if (elog.trace_enabled()) {
-		elog.trace() << "sending " << std::string(hdr.command, sizeof hdr.command).c_str() << ' ' << msg << std::endl;
+		elog.trace() << "sending " << std::string(hdr.command, sizeof hdr.command).c_str() << " (" << sizeof hdr + length << " bytes) " << msg << std::endl;
 	}
 	BufferedSink<3072> sink(socket);
 	(sink << hdr << msg).flush_fully();
@@ -283,7 +284,8 @@ template <typename M>
 M Node::receive(Source &source, const MessageHeader &hdr) {
 	SHA256 isha;
 	Tap tap(source, isha);
-	LimitedSource ls(tap, letoh(hdr.length_le));
+	auto length = letoh(hdr.length_le);
+	LimitedSource ls(tap, length);
 	M msg;
 	ls >> msg;
 	if (ls.remaining != 0) {
@@ -295,7 +297,7 @@ M Node::receive(Source &source, const MessageHeader &hdr) {
 		throw std::ios_base::failure("received message has incorrect checksum");
 	}
 	if (elog.trace_enabled()) {
-		elog.trace() << "received " << std::string(hdr.command, sizeof hdr.command).c_str() << ' ' << msg << std::endl;
+		elog.trace() << "received " << std::string(hdr.command, sizeof hdr.command).c_str() << " (" << sizeof hdr + length << " bytes) " << msg << std::endl;
 	}
 	return msg;
 }
