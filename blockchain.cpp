@@ -47,12 +47,7 @@ std::ostream & operator << (std::ostream &os, const Tx &tx) {
 
 
 Source & operator >> (Source &source, BlockHeader &hdr) {
-	source >> hdr.version_le;
-	uint32_t version = letoh(hdr.version_le);
-	if (version == 0 || version > 3) {
-		throw std::ios_base::failure("block version not supported");
-	}
-	return source >> hdr.parent_block_hash >> hdr.merkle_root_hash >> hdr.time_le >> hdr.bits_le >> hdr.nonce;
+	return source >> hdr.version_le >> hdr.parent_block_hash >> hdr.merkle_root_hash >> hdr.time_le >> hdr.bits_le >> hdr.nonce;
 }
 
 Sink & operator << (Sink &sink, const BlockHeader &hdr) {
