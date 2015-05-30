@@ -8,7 +8,7 @@ namespace satoshi {
 class Node {
 
 public:
-	static constexpr uint32_t protocol_version = 70001;
+	static constexpr uint32_t protocol_version = 70002;
 
 private:
 	MessageHeader::Magic magic;
