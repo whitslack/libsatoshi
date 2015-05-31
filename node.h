@@ -10,7 +10,7 @@ class Node {
 public:
 	static constexpr uint32_t protocol_version = 70002;
 
-private:
+protected:
 	MessageHeader::Magic magic;
 	Socket socket;
 
