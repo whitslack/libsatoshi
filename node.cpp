@@ -66,7 +66,7 @@ void Node::run() {
 	for (;;) {
 		MessageHeader hdr;
 		source >> hdr;
-		if (hdr.magic != magic) {
+		if (letoh(hdr.magic) != magic) {
 			throw std::ios_base::failure("received message has incorrect magic value");
 		}
 		switch (hdr.command[0]) {

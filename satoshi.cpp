@@ -79,7 +79,7 @@ std::ostream & operator << (std::ostream &os, const VersionMessage &msg) {
 	using ::operator <<;
 	auto version = letoh(msg.version);
 	auto timestamp = static_cast<std::time_t>(letoh(msg.timestamp));
-	os << "{ .version = " << version << ", .services = " << letoh(msg.services) << ", .timestamp = " << timestamp << " (" << std::chrono::system_clock::from_time_t(timestamp) << "), .addr_recv = " << msg.addr_recv;
+	os << "{ .version = " << version << ", .services = " << msg.services << ", .timestamp = " << timestamp << " (" << std::chrono::system_clock::from_time_t(timestamp) << "), .addr_recv = " << msg.addr_recv;
 	if (version >= 106) {
 		os << ", .addr_from = " << msg.addr_from;
 		if (version >= 209) {
@@ -309,7 +309,7 @@ std::ostream & operator << (std::ostream &os, const AlertMessage &msg) {
 
 Source & operator >> (Source &source, AlertPayload &payload) {
 	source >> payload.version;
-	if (payload.version == 1) {
+	if (payload.version == htole<uint32_t>(1)) {
 		source >> payload.relay_until >> payload.expiration >> payload.id >> payload.cancel >> payload.set_cancel >> payload.min_ver >> payload.max_ver >> payload.set_sub_ver >> payload.priority >> payload.comment >> payload.status_bar >> payload.reserved;
 	}
 	return source;
@@ -317,7 +317,7 @@ Source & operator >> (Source &source, AlertPayload &payload) {
 
 Sink & operator << (Sink &sink, const AlertPayload &payload) {
 	sink << payload.version;
-	if (payload.version == 1) {
+	if (payload.version == htole<uint32_t>(1)) {
 		sink << payload.relay_until << payload.expiration << payload.id << payload.cancel << payload.set_cancel << payload.min_ver << payload.max_ver << payload.set_sub_ver << payload.priority << payload.comment << payload.status_bar << payload.reserved;
 	}
 	return sink;
