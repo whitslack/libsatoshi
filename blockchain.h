@@ -2,7 +2,6 @@
 
 #include <iosfwd>
 
-#include "script.h"
 #include "types.h"
 #include "common/endian.h"
 
