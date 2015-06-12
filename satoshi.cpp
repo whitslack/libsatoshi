@@ -81,7 +81,7 @@ std::ostream & operator << (std::ostream &os, const VersionMessage &msg) {
 	auto timestamp = static_cast<std::time_t>(letoh(msg.timestamp));
 	os << "{ .version = " << version << ", .services = " << msg.services << ", .timestamp = " << timestamp << " (" << std::chrono::system_clock::from_time_t(timestamp) << "), .addr_recv = " << msg.addr_recv;
 	if (version >= 106) {
-		os << ", .addr_from = " << msg.addr_from;
+		os << ", .addr_from = " << msg.addr_from << ", .nonce = " << msg.nonce << ", .user_agent = \"" << msg.user_agent << '"';
 		if (version >= 209) {
 			os << ", .start_height = " << msg.start_height;
 			if (version >= 70001) {

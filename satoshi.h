@@ -70,7 +70,7 @@ struct VersionMessage : Message {
 	le<int64_t> timestamp;
 	NetworkAddress addr_recv;
 	NetworkAddress addr_from;
-	uint64_t nonce;
+	le<uint64_t> nonce;
 	std::string user_agent;
 	le<int32_t> start_height;
 	bool relay;
