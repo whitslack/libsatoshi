@@ -58,7 +58,7 @@ struct BlockHeader {
 	digest256_t merkle_root_hash;
 	le<uint32_t> time;
 	le<uint32_t> bits;
-	uint32_t nonce;
+	le<uint32_t> nonce;
 };
 
 Source & operator >> (Source &source, BlockHeader &hdr);
