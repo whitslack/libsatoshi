@@ -184,9 +184,11 @@ struct MemPoolMessage : Message {
 struct PingMessage : Message {
 	static constexpr char command[12] = "ping";
 
-	uint64_t nonce;
+	le<uint64_t> nonce;
 };
 
+Source & operator >> (Source &source, PingMessage &msg);
+Sink & operator << (Sink &sink, const PingMessage &msg);
 std::ostream & operator << (std::ostream &os, const PingMessage &msg);
 
 

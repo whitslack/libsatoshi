@@ -215,6 +215,14 @@ constexpr char MemPoolMessage::command[12];
 
 constexpr char PingMessage::command[12];
 
+Source & operator >> (Source &source, PingMessage &msg) {
+	return source >> msg.nonce;
+}
+
+Sink & operator << (Sink &sink, const PingMessage &msg) {
+	return sink << msg.nonce;
+}
+
 std::ostream & operator << (std::ostream &os, const PingMessage &msg) {
 	return os << "{ .nonce = " << msg.nonce << " }";
 }
