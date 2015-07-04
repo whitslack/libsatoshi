@@ -287,7 +287,7 @@ struct AlertPayload {
 	std::vector<le<uint32_t>> set_cancel;
 	le<uint32_t> min_ver;
 	le<uint32_t> max_ver;
-	std::vector<le<uint32_t>> set_sub_ver;
+	std::vector<std::string> set_sub_ver;
 	le<uint32_t> priority;
 	std::string comment;
 	std::string status_bar;
