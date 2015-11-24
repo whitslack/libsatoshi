@@ -114,7 +114,8 @@ public:
 
 		// expansion
 		OP_NOP1 = 0xB0,
-		OP_NOP2, OP_NOP3, OP_NOP4, OP_NOP5, OP_NOP6,
+		OP_NOP2, OP_CHECKLOCKTIMEVERIFY = OP_NOP2, // BIP 65
+		OP_NOP3, OP_NOP4, OP_NOP5, OP_NOP6,
 		OP_NOP7, OP_NOP8, OP_NOP9, OP_NOP10,
 
 		// template matching
