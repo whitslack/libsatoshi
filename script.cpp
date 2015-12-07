@@ -277,7 +277,7 @@ std::ostream & operator << (std::ostream &os, Script::Opcode opcode) {
 	}
 	auto orig_flags = os.flags(std::ios_base::hex | std::ios_base::internal | std::ios_base::showbase);
 	auto orig_fill = os.fill('0');
-	os << std::setw(4) << static_cast<uint>(opcode);
+	os << std::setw(4) << static_cast<unsigned>(opcode);
 	os.fill(orig_fill);
 	os.flags(orig_flags);
 	return os;
@@ -307,7 +307,7 @@ std::ostream & operator << (std::ostream &os, const Script &script) {
 				if (size > 0) {
 					os << std::hex << "0x";
 					for (auto b : itr) {
-						os << std::setw(2) << static_cast<uint>(b);
+						os << std::setw(2) << static_cast<unsigned>(b);
 					}
 					os << std::dec;
 				}

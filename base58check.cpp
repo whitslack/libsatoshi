@@ -87,7 +87,7 @@ static mp_limb_t decode_limb(const char *in, size_t n_in) {
 	};
 	mp_limb_t limb = 0;
 	while (n_in-- > 0) {
-		uint digit = static_cast<uint8_t>(*in++) - '1';
+		unsigned digit = static_cast<uint8_t>(*in++) - '1';
 		if (digit > 'z' - '1' || static_cast<int>(digit = decode[digit]) < 0) {
 			throw std::ios_base::failure("invalid Base58Check");
 		}

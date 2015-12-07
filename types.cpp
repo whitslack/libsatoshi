@@ -237,7 +237,7 @@ std::ostream & print_digest_le(std::ostream &os, const digest256_t &digest) {
 	auto orig_flags = os.flags(std::ios_base::hex | std::ios_base::right);
 	auto orig_fill = os.fill('0');
 	for (auto itr = digest.rbegin(); itr != digest.rend(); ++itr) {
-		os << std::setw(2) << static_cast<uint>(*itr);
+		os << std::setw(2) << static_cast<unsigned>(*itr);
 	}
 	os.fill(orig_fill);
 	os.flags(orig_flags);

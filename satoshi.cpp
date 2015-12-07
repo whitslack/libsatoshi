@@ -247,7 +247,7 @@ Sink & operator << (Sink &sink, const RejectMessage &msg) {
 }
 
 std::ostream & operator << (std::ostream &os, const RejectMessage &msg) {
-	return os << "{ .message = \"" << msg.message << "\", .ccode = " << std::hex << std::showbase << static_cast<uint>(msg.ccode) << std::dec << ", .reason = \"" << msg.reason << "\", .data = (" << msg.data.size() << ' ' << (msg.data.size() == 1 ? "byte" : "bytes") << ") }";
+	return os << "{ .message = \"" << msg.message << "\", .ccode = " << std::hex << std::showbase << static_cast<unsigned>(msg.ccode) << std::dec << ", .reason = \"" << msg.reason << "\", .data = (" << msg.data.size() << ' ' << (msg.data.size() == 1 ? "byte" : "bytes") << ") }";
 }
 
 
