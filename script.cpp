@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <iostream>
 
+#include "common/endian.h"
 #include "common/serial.h"
 
 
@@ -18,9 +19,9 @@ size_t Script::Iterator::size() const {
 		case OP_PUSHDATA1:
 			return *++itr;
 		case OP_PUSHDATA2:
-			return be16toh(*reinterpret_cast<const uint16_t *>(&*++itr));
+			return *reinterpret_cast<const be<uint16_t> *>(&*++itr);
 		case OP_PUSHDATA4:
-			return be32toh(*reinterpret_cast<const uint32_t *>(&*++itr));
+			return *reinterpret_cast<const be<uint32_t> *>(&*++itr);
 		default:
 			return 0;
 	}
@@ -58,31 +59,31 @@ intmax_t Script::Iterator::intval() const {
 					return v < 0 ? -0x80 - v : v;
 				}
 				case 2: {
-					int16_t v = le16toh(*reinterpret_cast<const uint16_t *>(data));
+					int16_t v = *reinterpret_cast<const le<uint16_t> *>(data);
 					return v < 0 ? -0x8000 - v : v;
 				}
 				case 3: {
-					int32_t v = le16toh(*reinterpret_cast<const uint16_t *>(data)) | data[2] << 16;
+					int32_t v = *reinterpret_cast<const le<uint16_t> *>(data) | data[2] << 16;
 					return v & 0x800000 ? -0x800000 - v : v;
 				}
 				case 4: {
-					int32_t v = le32toh(*reinterpret_cast<const uint32_t *>(data));
+					int32_t v = *reinterpret_cast<const le<uint32_t> *>(data);
 					return v < 0 ? -0x80000000 - v : v;
 				}
 				case 5: {
-					int64_t v = le32toh(*reinterpret_cast<const uint32_t *>(data)) | static_cast<uint64_t>(data[4]) << 32;
+					int64_t v = *reinterpret_cast<const le<uint32_t> *>(data) | static_cast<uint64_t>(data[4]) << 32;
 					return v & UINT64_C(0x8000000000) ? INT64_C(-0x8000000000) - v : v;
 				}
 				case 6: {
-					int64_t v = le32toh(*reinterpret_cast<const uint32_t *>(data)) | static_cast<uint64_t>(le16toh(*reinterpret_cast<const uint16_t *>(data + 4))) << 32;
+					int64_t v = *reinterpret_cast<const le<uint32_t> *>(data) | static_cast<uint64_t>(*reinterpret_cast<const le<uint16_t> *>(data + 4)) << 32;
 					return v & UINT64_C(0x800000000000) ? INT64_C(-0x800000000000) - v : v;
 				}
 				case 7: {
-					int64_t v = le32toh(*reinterpret_cast<const uint32_t *>(data)) | static_cast<uint64_t>(le16toh(*reinterpret_cast<const uint16_t *>(data + 4))) << 32 | static_cast<uint64_t>(data[6]) << 48;
+					int64_t v = *reinterpret_cast<const le<uint32_t> *>(data) | static_cast<uint64_t>(*reinterpret_cast<const le<uint16_t> *>(data + 4)) << 32 | static_cast<uint64_t>(data[6]) << 48;
 					return v & UINT64_C(0x80000000000000) ? INT64_C(-0x80000000000000) - v : v;
 				}
 				default: {
-					int64_t v = le64toh(*reinterpret_cast<const uint64_t *>(data));
+					int64_t v = *reinterpret_cast<const le<uint64_t> *>(data);
 					return v < 0 ? INT64_C(-0x8000000000000000) - v : v;
 				}
 			}
@@ -121,15 +122,15 @@ void Script::push_int(intmax_t value) {
 				this->push_data(&v, 1);
 			}
 			else if (value < 0x8000) {
-				uint16_t v = htole16(static_cast<uint16_t>(value));
+				le<uint16_t> v = static_cast<uint16_t>(value);
 				this->push_data(&v, 2);
 			}
 			else if (value < 0x80000000) {
-				uint32_t v = htole32(static_cast<uint32_t>(value));
+				le<uint32_t> v = static_cast<uint32_t>(value);
 				this->push_data(&v, value < 0x800000 ? 3 : 4);
 			}
 			else {
-				uint64_t v = htole64(static_cast<uint64_t>(value));
+				le<uint64_t> v = static_cast<uint64_t>(value);
 				this->push_data(&v, value < INT64_C(0x800000000000) ? value < INT64_C(0x8000000000) ? 5 : 6 : value < INT64_C(0x80000000000000) ? 7 : 8);
 			}
 			if (negate) {
@@ -149,7 +150,7 @@ void Script::push_data(const void *data, size_t size) {
 	}
 	else if (size <= UINT16_MAX) {
 		this->push_opcode(OP_PUSHDATA2);
-		uint16_t n = htobe16(static_cast<uint16_t>(size));
+		be<uint16_t> n = static_cast<uint16_t>(size);
 		script.insert(script.end(), reinterpret_cast<uint8_t *>(&n), reinterpret_cast<uint8_t *>(&n + 1));
 	}
 #if SIZE_MAX > UINT32_MAX
@@ -159,7 +160,7 @@ void Script::push_data(const void *data, size_t size) {
 #endif
 	else {
 		this->push_opcode(OP_PUSHDATA4);
-		uint32_t n = htobe32(static_cast<uint32_t>(size));
+		be<uint32_t> n = static_cast<uint32_t>(size);
 		script.insert(script.end(), reinterpret_cast<uint8_t *>(&n), reinterpret_cast<uint8_t *>(&n + 1));
 	}
 	script.insert(script.end(), static_cast<const uint8_t *>(data), static_cast<const uint8_t *>(data) + size);
