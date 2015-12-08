@@ -254,12 +254,12 @@ std::ostream & operator << (std::ostream &os, std::chrono::system_clock::time_po
 	return os << buf;
 }
 
-Source & read_varint(Source &source, uint32_t &v) {
+Source & _varint_ops<4>::read_unsigned(Source &source, uint32_t &v) {
 	v = narrow_check<uint32_t>(read_varint<uint64_t>(source));
 	return source;
 }
 
-Source & read_varint(Source &source, uint64_t &v) {
+Source & _varint_ops<8>::read_unsigned(Source &source, uint64_t &v) {
 	uint8_t byte;
 	source >> byte;
 	if (byte < 0xFD) {
@@ -283,7 +283,7 @@ Source & read_varint(Source &source, uint64_t &v) {
 	return source;
 }
 
-Sink & write_varint(Sink &sink, uint32_t v) {
+Sink & _varint_ops<4>::write_unsigned(Sink &sink, uint32_t v) {
 	if (v < 0xFD) {
 		sink << static_cast<uint8_t>(v);
 	}
@@ -296,7 +296,7 @@ Sink & write_varint(Sink &sink, uint32_t v) {
 	return sink;
 }
 
-Sink & write_varint(Sink &sink, uint64_t v) {
+Sink & _varint_ops<8>::write_unsigned(Sink &sink, uint64_t v) {
 	if (v <= UINT32_MAX) {
 		return write_varint(sink, static_cast<uint32_t>(v));
 	}
