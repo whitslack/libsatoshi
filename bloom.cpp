@@ -9,7 +9,7 @@ namespace satoshi {
 
 
 static inline void set_bit(uint8_t *bits, size_t bit_idx) {
-	bits[bit_idx / 8] |= static_cast<uint8_t>(1 << bit_idx % 8);
+	bits[bit_idx / 8] = static_cast<uint8_t>(bits[bit_idx / 8] | 1 << bit_idx % 8);
 }
 
 static inline bool test_bit(const uint8_t *bits, size_t bit_idx) {
