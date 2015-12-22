@@ -97,6 +97,9 @@ static mp_limb_t decode_limb(const char *in, size_t n_in) {
 }
 
 size_t base58check_decode(void * _restrict out, size_t n_out, const char * _restrict in, size_t n_in) {
+	if (n_in == 0) {
+		throw std::ios_base::failure("invalid Base58Check");
+	}
 	uint8_t *p = static_cast<uint8_t *>(out), *end = p + n_out;
 	while (n_in > 0 && *in == '1') {
 		if (p == end) {
