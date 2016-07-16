@@ -54,7 +54,7 @@ struct InventoryVector {
 
 
 struct Message {
-	Message() { } // force non-POD type
+	~Message() { } // force non-trivially copyable type
 };
 
 static inline Source & operator >> (Source &source, Message &) { return source; }
